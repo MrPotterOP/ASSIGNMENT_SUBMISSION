@@ -6,13 +6,13 @@ import countries from "../models/countries.js";
 const postUsers  = (req, res) =>{
   const {firstName, lastName, email, country, state, city, gender, dob} = req.body;
 
-
+    console.log(firstName, lastName, email, country, state, city, gender, dob);
     //Functional Components
 
     const createUser = (age) =>{
         users.create({firstName, lastName, email, country, state, city, gender: gender.toUpperCase(), dob, age})
         .then(r =>{
-            console.log(r);
+            return res.json(r);
         })
         .catch(e =>{
             let errors = e.message.slice(24).split(", ");
@@ -25,8 +25,8 @@ const postUsers  = (req, res) =>{
         let val = (selectedDate.getTime() / 1000) * 1000;
         var age = 0;
         
-        function calculateAge(birthday) {
-
+        function calculateAge(bd) {
+            let birthday = new Date(bd);
             let date = new Date();
             let now = new Date(date.toLocaleString('en-US', { timeZone: "Asia/Kolkata" }));    
 
@@ -38,8 +38,6 @@ const postUsers  = (req, res) =>{
         }
 
         calculateAge(val);
-
-        console.log(age);
 
         if(age > 13){
             createUser(age);
@@ -74,17 +72,29 @@ const postUsers  = (req, res) =>{
     }
 
     const isValidDate = (dateString) => {
-        var date = new Date(dateString);
-        return !isNaN(date);
+        const pattern = /^\d{4}-\d{2}-\d{2}$/;
+
+            if (!pattern.test(dateString)) {
+                return false;
+            }
+
+            const [year, month, day] = dateString.split('-');
+
+            const date = new Date(year, month - 1, day);
+            const isValid = date.getFullYear() == year &&
+                date.getMonth() + 1 == month &&
+                date.getDate() == day;
+
+            return isValid;
       }
 
 
     //Main JS
     
     if(isValidDate(dob)){
-        return res.status(401).json({errors: ["dob: Date-of-Birth is required."]})
-    }else{
         checkCountry();
+    }else{
+        return res.status(401).json({errors: ["dob: Date-of-Birth is required."]})
     }
 
 }
